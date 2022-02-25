@@ -8,6 +8,7 @@ defmodule TDNS00.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {TDNS00.ZoneDB, "test/wiki.zone"}
       # Starts a worker by calling: TDNS00.Worker.start_link(arg)
       # {TDNS00.Worker, arg}
     ]
