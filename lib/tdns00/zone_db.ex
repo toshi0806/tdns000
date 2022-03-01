@@ -3,15 +3,18 @@ defmodule TDNS00.ZoneDB do
   @me __MODULE__
 
   # API
+  @spec start_link(any) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: @me)
   end
 
+  @spec resolve(String.t(), atom, atom) :: any
   def resolve(host, class, type) do
     GenServer.call(@me, {:resolve, host, class, type})
   end
 
   # server
+  @spec init(String.t()) :: {:ok, any}
   def init(file) do
     {:ok, TDNS00.ZoneParser.parse_file(file)}
   end

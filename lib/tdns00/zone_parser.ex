@@ -1,4 +1,5 @@
 defmodule TDNS00.ZoneParser do
+  @spec parse_file(String.t()) :: any
   def parse_file(path) do
     path
     |> File.read!()
@@ -6,6 +7,7 @@ defmodule TDNS00.ZoneParser do
     |> parse_zone(%{}, %{})
   end
 
+  @spec paren_reader(nonempty_maybe_improper_list, String.t()) :: {String.t(), any}
   def paren_reader([top | body], "") do
     line_real = Regex.replace(~r/\s*;.*/, top, "")
 
@@ -30,6 +32,7 @@ defmodule TDNS00.ZoneParser do
     end
   end
 
+  @spec parse_zone(maybe_improper_list, any, any) :: any
   def parse_zone([], _current, zone), do: zone
 
   def parse_zone(body, current, zone) do
@@ -57,6 +60,7 @@ defmodule TDNS00.ZoneParser do
     end
   end
 
+  @spec parse_dollar([...], maybe_improper_list, map) :: any
   def parse_dollar(["$ORIGIN", value], left, zone) do
     parse_zone(left, %{}, Map.put(zone, :origin, value))
   end
@@ -65,6 +69,7 @@ defmodule TDNS00.ZoneParser do
     parse_zone(left, %{}, Map.put(zone, :ttl, parse_time(value)))
   end
 
+  @spec parse_time(binary) :: integer
   def parse_time(time) do
     parsed = Regex.named_captures(~r/(?<num>\d+)(?<unit>[MHDW]?)/, String.upcase(time))
 
@@ -78,6 +83,7 @@ defmodule TDNS00.ZoneParser do
       end
   end
 
+  @spec get_fqdn(binary, any) :: any
   def get_fqdn("@", origin) do
     origin
   end
@@ -90,6 +96,7 @@ defmodule TDNS00.ZoneParser do
     end
   end
 
+  @spec parse_ttl(nonempty_maybe_improper_list, maybe_improper_list, map, map) :: any
   def parse_ttl([ttl | args] = arg0, left, current, zone) do
     if Regex.match?(~r/\d+/, ttl) do
       parse_class(args, left, Map.put(current, :ttl, parse_time(ttl)), zone)
@@ -98,6 +105,7 @@ defmodule TDNS00.ZoneParser do
     end
   end
 
+  @spec parse_class(nonempty_maybe_improper_list, maybe_improper_list, atom | map, map) :: any
   def parse_class(["IN" | args], left, current, zone) do
     parse_type(args, left, Map.put(current, :class, :in), zone)
   end
@@ -118,6 +126,12 @@ defmodule TDNS00.ZoneParser do
     parse_type(args, left, Map.put(current, :class, :in), zone)
   end
 
+  @spec parse_type(
+          nonempty_maybe_improper_list,
+          maybe_improper_list,
+          %{:host => any, optional(any) => any},
+          map
+        ) :: any
   def parse_type(
         ["SOA" | [mname | [rname | [serial | [refresh | [retry | [expire | [minimum | _]]]]]]]],
         left,
@@ -214,6 +228,18 @@ defmodule TDNS00.ZoneParser do
     )
   end
 
+  @spec add_rdata(
+          map,
+          atom
+          | %{
+              :class => any,
+              :host => any,
+              :rdata => any,
+              :ttl => any,
+              :type => any,
+              optional(any) => any
+            }
+        ) :: map
   def add_rdata(zone, current) do
     rdata = %{ttl: current.ttl, rdata: current.rdata}
 
@@ -232,7 +258,7 @@ defmodule TDNS00.ZoneParser do
               current.type,
               [rdata],
               fn type_record ->
-                [rdata | type_record]
+                Enum.reverse([rdata | Enum.reverse(type_record)])
               end
             )
           end
