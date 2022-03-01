@@ -13,6 +13,10 @@ defmodule TDNS00.ZoneDB do
     GenServer.call(@me, {:resolve, host, class, type})
   end
 
+  def db() do
+    GenServer.call(@me, :db)
+  end
+
   # server
   @spec init(String.t()) :: {:ok, any}
   def init(file) do
@@ -45,4 +49,6 @@ defmodule TDNS00.ZoneDB do
 
     {:reply, results, db}
   end
+
+  def handle_call(:db, _from, db), do: {:reply, db, db}
 end
