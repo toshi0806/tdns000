@@ -11,6 +11,7 @@ defmodule TDNS00.ZoneDBTest do
       expire: 4 * 7 * 24 * 3600,
       minimum: 3600
     },
+    :ttl => 3600,
     "example.com." => %{
       in: %{
         soa: %{
@@ -126,10 +127,9 @@ defmodule TDNS00.ZoneDBTest do
              %{"nx_domain.example.com." => %{error: :nx_domain}}
 
     assert TDNS00.ZoneDB.resolve("ns.example.com.", :in, :txt) ==
-      %{"ns.example.com." => %{in: %{soa: @wiki_zone.soa}}}
+             %{"ns.example.com." => %{in: %{soa: [%{rdata: @wiki_zone.soa, ttl: @wiki_zone.ttl}]}}}
 
     assert TDNS00.ZoneDB.resolve("ns.example.com.", :ch, :a) ==
-      %{"ns.example.com." => %{ch: %{soa: @wiki_zone.soa}}}
-
+             %{"ns.example.com." => %{ch: %{soa: [%{rdata: @wiki_zone.soa, ttl: @wiki_zone.ttl}]}}}
   end
 end

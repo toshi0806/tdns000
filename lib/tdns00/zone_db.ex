@@ -35,11 +35,11 @@ defmodule TDNS00.ZoneDB do
               class =>
                 case Map.get(host_record, class, nil) do
                   nil ->
-                    %{soa: db.soa}
+                    %{soa: [%{rdata: db.soa, ttl: db.ttl}]}
 
                   class_record ->
                     case Map.get(class_record, type, nil) do
-                      nil -> %{soa: db.soa}
+                      nil -> %{soa: [%{rdata: db.soa, ttl: db.ttl}]}
                       type_record -> %{type => type_record}
                     end
                 end
