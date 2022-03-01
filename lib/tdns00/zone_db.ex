@@ -47,7 +47,21 @@ defmodule TDNS00.ZoneDB do
         end
     }
 
-    {:reply, results, db}
+    update =
+      case results
+           |> Map.get(host, %{})
+           |> Map.get(class, %{})
+           |> Map.get(type, [:dummy])
+           |> length do
+        1 ->
+          db
+
+        _ ->
+          [h | t] = db[host][class][type]
+          put_in(db[host][class][type], Enum.reverse([h | Enum.reverse(t)]))
+      end
+
+    {:reply, results, update}
   end
 
   def handle_call(:db, _from, db), do: {:reply, db, db}
