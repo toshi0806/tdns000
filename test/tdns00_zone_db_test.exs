@@ -123,7 +123,7 @@ defmodule TDNS00.ZoneDBTest do
 
   test "resolve fail" do
     assert TDNS00.ZoneDB.resolve("nx_domain.example.com.", :in, :a) ==
-      %{"nx_domain.example.com." => :nx_domain}
+             %{"nx_domain.example.com." => %{error: :nx_domain}}
 
     assert TDNS00.ZoneDB.resolve("ns.example.com.", :in, :txt) ==
       %{"ns.example.com." => %{in: %{soa: @wiki_zone.soa}}}

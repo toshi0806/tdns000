@@ -28,7 +28,7 @@ defmodule TDNS00.ZoneDB do
       host =>
         case Map.get(db, host, nil) do
           nil ->
-            :nx_domain
+            %{error: :nx_domain}
 
           host_record ->
             %{
