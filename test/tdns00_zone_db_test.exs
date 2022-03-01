@@ -99,14 +99,26 @@ defmodule TDNS00.ZoneDBTest do
   }
 
   test "resolve success" do
-    assert TDNS00.ZoneDB.resolve("ns.example.com.", :in, :a) == 
-      %{"ns.example.com." => %{in: %{a: [%{rdata: IP.Address.from_string!("192.0.2.2"), ttl: 3600}]}}}
+    assert TDNS00.ZoneDB.resolve("ns.example.com.", :in, :a) ==
+             %{
+               "ns.example.com." => %{
+                 in: %{a: [%{rdata: IP.Address.from_string!("192.0.2.2"), ttl: 3600}]}
+               }
+             }
 
     assert TDNS00.ZoneDB.resolve("mail.example.com.", :in, :a) ==
-      %{"mail.example.com." => %{in: %{a: [%{rdata: IP.Address.from_string!("192.0.2.3"), ttl: 3600}]}}}
+             %{
+               "mail.example.com." => %{
+                 in: %{a: [%{rdata: IP.Address.from_string!("192.0.2.3"), ttl: 3600}]}
+               }
+             }
 
     assert TDNS00.ZoneDB.resolve("wwwtest.example.com.", :in, :cname) ==
-      %{"wwwtest.example.com." => %{in: %{cname: [%{rdata: "www.example.com.", ttl: 3600}]}}}
+             %{
+               "wwwtest.example.com." => %{
+                 in: %{cname: [%{rdata: "www.example.com.", ttl: 3600}]}
+               }
+             }
   end
 
   test "resolve fail" do
