@@ -7,14 +7,14 @@ defmodule TDNS00.Application do
 
   @impl true
   def start(_type, _args) do
+    port = String.to_integer(System.get_env("TDNS00PORT") || "53")
+
     children = [
-      {TDNS00.ZoneDB, "test/wiki.zone"}
-      # Starts a worker by calling: TDNS00.Worker.start_link(arg)
-      # {TDNS00.Worker, arg}
+      {TDNS00.ZoneDB, "test/wiki.zone"},
+      {Task.Supervisor, name: TDNS00.UDPServer.WorkerSupervisor},
+      {TDNS00.UDPServer.Task, port}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: TDNS00.Supervisor]
     Supervisor.start_link(children, opts)
   end
