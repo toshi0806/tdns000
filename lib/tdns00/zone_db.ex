@@ -24,45 +24,47 @@ defmodule TDNS00.ZoneDB do
   end
 
   def handle_call({:resolve, host, class, type}, _from, db) do
-    results = %{
-      host =>
-        case Map.get(db, host, nil) do
-          nil ->
-            %{error: :nx_domain}
+    results =
+      %{}
+      |> Map.put(:name, host)
+      |> add_host_record(db[host], class, type, db)
 
-          host_record ->
-            %{
-              class =>
-                case Map.get(host_record, class, nil) do
-                  nil ->
-                    %{soa: [%{rdata: db.soa, ttl: db.ttl}]}
-
-                  class_record ->
-                    case Map.get(class_record, type, nil) do
-                      nil -> %{soa: [%{rdata: db.soa, ttl: db.ttl}]}
-                      type_record -> %{type => type_record}
-                    end
-                end
-            }
-        end
-    }
-
-    update =
-      case results
-           |> Map.get(host, %{})
-           |> Map.get(class, %{})
-           |> Map.get(type, [:dummy])
-           |> length do
-        1 ->
-          db
-
-        _ ->
-          [h | t] = db[host][class][type]
-          put_in(db[host][class][type], Enum.reverse([h | Enum.reverse(t)]))
-      end
-
-    {:reply, results, update}
+    {:reply, results, db}
   end
 
   def handle_call(:db, _from, db), do: {:reply, db, db}
+
+  def add_host_record(result, nil, _class, _type, _db) do
+    Map.put(result, :error, :nx_domain)
+  end
+
+  def add_host_record(result, host_record, class, type, db) do
+    result
+    |> Map.put(:class, class)
+    |> add_class_record(host_record[class], type, db)
+  end
+
+  def add_class_record(result, nil, _type, db) do
+    add_default_soa(result, db)
+  end
+
+  def add_class_record(result, class_record, type, db) do
+    add_type_record(result, class_record[type], type, db)
+  end
+
+  def add_default_soa(result, db) do
+    result
+    |> Map.put(:type, :soa)
+    |> Map.put(:rdata, db.soa)
+  end
+
+  def add_type_record(result, nil, _type, db) do
+    add_default_soa(result, db)
+  end
+
+  def add_type_record(result, type_record, type, _db) do
+    result
+    |> Map.put(:type, type)
+    |> Map.put(:rdata, type_record)
+  end
 end

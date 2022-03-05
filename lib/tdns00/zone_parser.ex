@@ -1,4 +1,6 @@
 defmodule TDNS00.ZoneParser do
+  @default_ttl 3600
+
   @spec parse_file(String.t()) :: any
   def parse_file(path) do
     path
@@ -101,7 +103,7 @@ defmodule TDNS00.ZoneParser do
     if Regex.match?(~r/\d+/, ttl) do
       parse_class(args, left, Map.put(current, :ttl, parse_time(ttl)), zone)
     else
-      parse_class(arg0, left, Map.put(current, :ttl, zone.ttl), zone)
+      parse_class(arg0, left, Map.put(current, :ttl, Map.get(zone, :ttl, @default_ttl)), zone)
     end
   end
 
@@ -152,7 +154,7 @@ defmodule TDNS00.ZoneParser do
       left,
       %{host: current.host},
       add_rdata(
-        Map.put(zone, :soa, soa),
+        Map.put(zone, :soa, [Map.put(soa, :ttl, current.ttl)]),
         current
         |> Map.put(:type, :soa)
         |> Map.put(:rdata, soa)
@@ -168,7 +170,7 @@ defmodule TDNS00.ZoneParser do
         zone,
         current
         |> Map.put(:type, :ns)
-        |> Map.put(:rdata, get_fqdn(ns, zone.origin))
+        |> Map.put(:rdata, %{name: get_fqdn(ns, zone.origin)})
       )
     )
   end
@@ -181,7 +183,17 @@ defmodule TDNS00.ZoneParser do
         zone,
         current
         |> Map.put(:type, :a)
-        |> Map.put(:rdata, IP.Address.from_string!(addr))
+        |> Map.put(
+          :rdata,
+          %{
+            addr:
+              addr
+              |> String.to_charlist()
+              |> :inet.parse_address()
+              |> Tuple.to_list()
+              |> List.last()
+          }
+        )
       )
     )
   end
@@ -194,7 +206,17 @@ defmodule TDNS00.ZoneParser do
         zone,
         current
         |> Map.put(:type, :aaaa)
-        |> Map.put(:rdata, IP.Address.from_string!(addr))
+        |> Map.put(
+          :rdata,
+          %{
+            addr:
+              addr
+              |> String.to_charlist()
+              |> :inet.parse_address()
+              |> Tuple.to_list()
+              |> List.last()
+          }
+        )
       )
     )
   end
@@ -207,7 +229,7 @@ defmodule TDNS00.ZoneParser do
         zone,
         current
         |> Map.put(:type, :cname)
-        |> Map.put(:rdata, get_fqdn(cname, zone.origin))
+        |> Map.put(:rdata, %{name: get_fqdn(cname, zone.origin)})
       )
     )
   end
@@ -221,8 +243,8 @@ defmodule TDNS00.ZoneParser do
         current
         |> Map.put(:type, :mx)
         |> Map.put(:rdata, %{
-          pref: String.to_integer(pref),
-          exchange: get_fqdn(exchange, zone.origin)
+          preference: String.to_integer(pref),
+          name: get_fqdn(exchange, zone.origin)
         })
       )
     )
@@ -241,7 +263,7 @@ defmodule TDNS00.ZoneParser do
             }
         ) :: map
   def add_rdata(zone, current) do
-    rdata = %{ttl: current.ttl, rdata: current.rdata}
+    rdata = Map.put(current.rdata, :ttl, current.ttl)
 
     Map.update(
       zone,
