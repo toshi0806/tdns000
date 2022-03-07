@@ -24,10 +24,8 @@ defmodule TDNS00.MixProject do
     [
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:ip, "~> 1.2.0"},
-      {:socket, "~> 0.3"}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      #      {:tenbin_dns, path: "../tenbin_dns"}
+      {:tenbin_dns, git: "https://github.com/toshi0806/tenbin_dns.git", tag: "0.2.4"}
     ]
   end
 end

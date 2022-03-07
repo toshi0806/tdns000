@@ -190,8 +190,7 @@ defmodule TDNS00.ZoneParser do
               addr
               |> String.to_charlist()
               |> :inet.parse_address()
-              |> Tuple.to_list()
-              |> List.last()
+              |> elem(1)
           }
         )
       )
@@ -213,8 +212,7 @@ defmodule TDNS00.ZoneParser do
               addr
               |> String.to_charlist()
               |> :inet.parse_address()
-              |> Tuple.to_list()
-              |> List.last()
+              |> elem(1)
           }
         )
       )
