@@ -13,6 +13,10 @@ defmodule TDNS00.ZoneDB do
     GenServer.call(@me, {:resolve, host, class, type})
   end
 
+  def origin() do
+    GenServer.call(@me, :origin)
+  end
+
   def db() do
     GenServer.call(@me, :db)
   end
@@ -27,44 +31,40 @@ defmodule TDNS00.ZoneDB do
     results =
       %{}
       |> Map.put(:name, host)
-      |> add_host_record(db[host], class, type, db)
+      |> add_host_record(db[host], class, type)
 
     {:reply, results, db}
   end
 
   def handle_call(:db, _from, db), do: {:reply, db, db}
 
-  def add_host_record(result, nil, _class, _type, _db) do
+  def handle_call(:origin, _from, db), do: {:reply, db.origin, db}
+
+  def add_host_record(result, nil, _class, _type) do
     Map.put(result, :error, :nx_domain)
   end
 
-  def add_host_record(result, host_record, class, type, db) do
+  def add_host_record(result, host_record, class, type) do
     result
     |> Map.put(:class, class)
-    |> add_class_record(host_record[class], type, db)
+    |> add_class_record(host_record[class], type)
   end
 
-  def add_class_record(result, nil, _type, db) do
-    add_default_soa(result, db)
+  def add_class_record(result, nil, _type) do
+    Map.put(result, :error, :nx_class)
   end
 
-  def add_class_record(result, class_record, type, db) do
-    add_type_record(result, class_record[type], type, db)
-  end
-
-  def add_default_soa(result, db) do
-    result
-    |> Map.put(:type, :soa)
-    |> Map.put(:rdata, db.soa)
-  end
-
-  def add_type_record(result, nil, _type, db) do
-    add_default_soa(result, db)
-  end
-
-  def add_type_record(result, type_record, type, _db) do
+  def add_class_record(result, class_record, type) do
     result
     |> Map.put(:type, type)
-    |> Map.put(:rdata, type_record)
+    |> add_type_record(class_record[type])
+  end
+
+  def add_type_record(result, nil) do
+    Map.put(result, :error, :nx_type)
+  end
+
+  def add_type_record(result, type_record) do
+    Map.put(result, :rdata, type_record)
   end
 end

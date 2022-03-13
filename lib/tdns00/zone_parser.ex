@@ -135,34 +135,32 @@ defmodule TDNS00.ZoneParser do
           map
         ) :: any
   def parse_type(
-        ["SOA" | [mname | [rname | [serial | [refresh | [retry | [expire | [minimum | _]]]]]]]],
+        ["SOA", mname, rname, serial, refresh, retry, expire, minimum],
         left,
         current,
         zone
       ) do
-    soa = %{
-      mname: get_fqdn(mname, zone.origin),
-      rname: get_fqdn(rname, zone.origin),
-      serial: parse_time(serial),
-      refresh: parse_time(refresh),
-      retry: parse_time(retry),
-      expire: parse_time(expire),
-      minimum: parse_time(minimum)
-    }
-
     parse_zone(
       left,
       %{host: current.host},
       add_rdata(
-        Map.put(zone, :soa, [Map.put(soa, :ttl, current.ttl)]),
+        zone,
         current
         |> Map.put(:type, :soa)
-        |> Map.put(:rdata, soa)
+        |> Map.put(:rdata, %{
+          mname: get_fqdn(mname, zone.origin),
+          rname: get_fqdn(rname, zone.origin),
+          serial: parse_time(serial),
+          refresh: parse_time(refresh),
+          retry: parse_time(retry),
+          expire: parse_time(expire),
+          minimum: parse_time(minimum)
+        })
       )
     )
   end
 
-  def parse_type(["NS" | [ns | _]], left, current, zone) do
+  def parse_type(["NS", ns], left, current, zone) do
     parse_zone(
       left,
       %{host: current.host},
@@ -175,7 +173,7 @@ defmodule TDNS00.ZoneParser do
     )
   end
 
-  def parse_type(["A" | [addr | _]], left, current, zone) do
+  def parse_type(["A", addr], left, current, zone) do
     parse_zone(
       left,
       %{host: current.host},
@@ -197,7 +195,7 @@ defmodule TDNS00.ZoneParser do
     )
   end
 
-  def parse_type(["AAAA" | [addr | _]], left, current, zone) do
+  def parse_type(["AAAA", addr], left, current, zone) do
     parse_zone(
       left,
       %{host: current.host},
@@ -219,7 +217,7 @@ defmodule TDNS00.ZoneParser do
     )
   end
 
-  def parse_type(["CNAME" | [cname | _]], left, current, zone) do
+  def parse_type(["CNAME", cname], left, current, zone) do
     parse_zone(
       left,
       %{host: current.host},
@@ -232,7 +230,7 @@ defmodule TDNS00.ZoneParser do
     )
   end
 
-  def parse_type(["MX" | [pref | [exchange | _]]], left, current, zone) do
+  def parse_type(["MX", pref, exchange], left, current, zone) do
     parse_zone(
       left,
       %{host: current.host},
@@ -250,15 +248,7 @@ defmodule TDNS00.ZoneParser do
 
   @spec add_rdata(
           map,
-          atom
-          | %{
-              :class => any,
-              :host => any,
-              :rdata => any,
-              :ttl => any,
-              :type => any,
-              optional(any) => any
-            }
+          %{host: String, class: atom, type: atom, rdata: list, ttl: integer}
         ) :: map
   def add_rdata(zone, current) do
     rdata = Map.put(current.rdata, :ttl, current.ttl)

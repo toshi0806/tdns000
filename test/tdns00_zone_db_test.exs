@@ -166,42 +166,11 @@ defmodule TDNS00.ZoneDBTest do
     assert TDNS00.ZoneDB.resolve("nx_domain.example.com.", :in, :a) ==
              %{name: "nx_domain.example.com.", error: :nx_domain}
 
-    assert TDNS00.ZoneDB.resolve("ns.example.com.", :in, :txt) ==
-             %{
-               name: "ns.example.com.",
-               class: :in,
-               type: :soa,
-               rdata: [
-                 %{
-                   mname: "ns.example.com.",
-                   rname: "username.example.com.",
-                   serial: 2_016_022_201,
-                   refresh: 24 * 3600,
-                   retry: 2 * 3600,
-                   expire: 4 * 7 * 24 * 3600,
-                   minimum: 3600,
-                   ttl: 3600
-                 }
-               ]
-             }
-
     assert TDNS00.ZoneDB.resolve("ns.example.com.", :ch, :a) ==
-             %{
-               name: "ns.example.com.",
-               class: :ch,
-               type: :soa,
-               rdata: [
-                 %{
-                   mname: "ns.example.com.",
-                   rname: "username.example.com.",
-                   serial: 2_016_022_201,
-                   refresh: 24 * 3600,
-                   retry: 2 * 3600,
-                   expire: 4 * 7 * 24 * 3600,
-                   minimum: 3600,
-                   ttl: 3600
-                 }
-               ]
-             }
+             %{name: "ns.example.com.", class: :ch, error: :nx_class}
+
+    assert TDNS00.ZoneDB.resolve("ns.example.com.", :in, :txt) ==
+             %{name: "ns.example.com.", class: :in, type: :txt, error: :nx_type}
+
   end
 end
