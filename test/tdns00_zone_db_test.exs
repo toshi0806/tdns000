@@ -171,6 +171,5 @@ defmodule TDNS00.ZoneDBTest do
 
     assert TDNS00.ZoneDB.resolve("ns.example.com.", :in, :txt) ==
              %{name: "ns.example.com.", class: :in, type: :txt, error: :nx_type}
-
   end
 end
