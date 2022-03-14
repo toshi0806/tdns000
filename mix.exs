@@ -25,7 +25,7 @@ defmodule TDNS00.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       #      {:tenbin_dns, path: "../tenbin_dns"}
-      {:tenbin_dns, git: "https://github.com/toshi0806/tenbin_dns.git", tag: "0.2.4"}
+      {:tenbin_dns, git: "https://github.com/toshi0806/tenbin_dns.git", tag: "0.3.2"}
     ]
   end
 end
